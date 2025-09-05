@@ -78,7 +78,7 @@ const LocateControl: React.FC = React.memo(() => {
 
 // Main map component
 const Map: React.FC<MapProps> = ({ locations, currLocation }) => {
-  const defaultPosition: [number, number] = [52.52, 13.405]; // Default center position (Berlin)
+  const defaultPosition: [number, number] = [29.7604, -95.3698]; // Default center position (Houston, TX)
 
   return (
     <div className="map-container" style={{ position: 'relative' }}>
@@ -87,8 +87,8 @@ const Map: React.FC<MapProps> = ({ locations, currLocation }) => {
         zoom={10}
         style={{ height: '100%', width: '100%', margin: '0px' }}>
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+          // attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
 
         {/* Add markers for all locations */}
