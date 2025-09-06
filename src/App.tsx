@@ -1,64 +1,66 @@
-import React, { useState, useEffect, useRef, Suspense } from 'react';
-import Sidebar from './components/Sidebar';
+import React, { useState, useEffect, Suspense } from 'react';
+import BottomNavigation from './components/BottomNavigation';
 import { Location } from './types';
 import './styles/App.css';
-import { useDispatch } from 'react-redux';
-import { close } from './store/slices/sideBarSlice';
-import { trigger } from './store/slices/mapSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchPins } from './store/slices/pinsSlice';
+import { RootState } from './store/store';
+import ApiStatus from './components/ApiStatus';
 
 const MapComponent = React.lazy(() => import('./components/Map'));
 
 const App: React.FC = () => {
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [currLocation, setCurrLocation] = useState<Location>(locations[0]);
+  const [currLocation, setCurrLocation] = useState<Location | null>(null);
   const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('home');
   const dispatch = useDispatch();
 
-  // Fetch locations from the static JSON file
+  // Get data from Redux store
+  const { pins } = useSelector((state: RootState) => state.pins);
+
+  // Convert pins to locations for compatibility
+  const locations: Location[] = pins.map(pin => ({
+    id: pin.id,
+    name: pin.title || `${pin.kind} - ${pin.categories.join(', ')}`,
+    lat: pin.lat,
+    lon: pin.lng,
+    description: pin.body,
+    type: pin.kind,
+    urgency: pin.urgency,
+  }));
+
+  // Fetch data from API
   useEffect(() => {
-    const fetchLocations = async () => {
-      const response = await fetch('/locations.json');
-      const data = await response.json();
-      setLocations(data);
-      setFilteredLocations(data);
-    };
+    dispatch(fetchPins() as any);
+  }, [dispatch]);
 
-    fetchLocations();
-  }, []);
-
-  const handleSearch = (query: string) => {
-    const filtered = locations.filter((location) =>
-      location.name.toLowerCase().includes(query.toLowerCase()),
-    );
-
-    setFilteredLocations(filtered);
-  };
-
-  const handleLocationSelect = (lat: number, lon: number, location: Location) => {
-    console.log('Zoom to location:', lat, lon);
-    setCurrLocation(location);
-    dispatch(close());
+  // Update filtered locations when pins change
+  useEffect(() => {
     setFilteredLocations(locations);
-
-    if (searchInputRef.current) {
-      searchInputRef.current.value = '';
+    if (locations.length > 0 && !currLocation) {
+      setCurrLocation(locations[0]);
     }
-    dispatch(trigger());
+  }, [pins, currLocation]);
+
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    console.log('Active tab changed to:', tab);
   };
 
   return (
     <div className="app">
-      <Sidebar
+      <ApiStatus />
+      {/* <Sidebar
         locations={filteredLocations}
         searchInputRef={searchInputRef}
         onLocationSelect={handleLocationSelect}
         handleSearch={handleSearch}
-      />
+      /> */}
       <Suspense fallback={<div>Loading map...</div>}>
-        {' '}
-        <MapComponent locations={filteredLocations} currLocation={currLocation} />
+        <MapComponent locations={filteredLocations} currLocation={currLocation || locations[0]} />
       </Suspense>
+      <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
     </div>
   );
 };

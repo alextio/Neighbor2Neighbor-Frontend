@@ -66,7 +66,7 @@ const LocateControl: React.FC = React.memo(() => {
         right: '10px',
         zIndex: 1000,
         padding: '4px',
-        backgroundColor: '#3581bf',
+        backgroundColor: '#8e7cc3',
         color: '#fff',
         border: 'none',
         borderRadius: '3px',
@@ -88,7 +88,7 @@ const Map: React.FC<MapProps> = ({ locations, currLocation }) => {
         style={{ height: '100%', width: '100%', margin: '0px' }}>
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-          // attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution=""
         />
 
         {/* Add markers for all locations */}
