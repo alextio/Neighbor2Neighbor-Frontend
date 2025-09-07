@@ -15,7 +15,7 @@ interface CityCardProps {
 }
 
 const CityCard: React.FC<CityCardProps> = ({ location, onEdit }) => {
-  console.log('🏷️ CityCard rendering with location:', location);
+  console.log('🏷️ CityCard re-rendering for location:', location.id, location.name);
   
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();

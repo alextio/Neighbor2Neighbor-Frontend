@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Image, Send, Trash2 } from 'lucide-react';
+import { Image, Send, Trash2 } from 'lucide-react';
 
 interface PostTooltipProps {
   isOpen: boolean;
@@ -30,7 +30,7 @@ const helpEmojis = [
   { emoji: '🏠', label: 'Shelter' },
   { emoji: '🚗', label: 'Transportation' },
   { emoji: '💪', label: 'Manpower' },
-  { emoji: '🫂', label: 'Friendship' },
+  { emoji: '🫂', label: 'Friends' },
 ];
 
 const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit, onDelete, editData }) => {
@@ -94,6 +94,7 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit, on
 
   const handleDelete = async () => {
     if (editData?.id && onDelete) {
+      // Edit mode - delete the post
       const confirmed = window.confirm('Are you sure you want to delete this post? This action cannot be undone.');
       if (confirmed) {
         try {
@@ -104,6 +105,13 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit, on
           console.error('Delete failed:', error);
         }
       }
+    } else {
+      // Create mode - reset/clear all fields
+      setSelectedEmojis([]);
+      setMessage('');
+      setImages([]);
+      setLocation(null);
+      setLocationError(null);
     }
   };
 
@@ -220,10 +228,11 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit, on
                   </button>
                 ) : (
                   <button
-                    onClick={onClose}
-                    className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                    onClick={handleDelete}
+                    className="p-1 rounded-full hover:bg-red-100 transition-colors group"
+                    title="Clear all fields"
                   >
-                    <X size={20} className="text-gray-500" />
+                    <Trash2 size={20} className="text-red-500 group-hover:text-red-600" />
                   </button>
                 )}
               </div>

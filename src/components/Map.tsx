@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import CityCard from './CityCard';
 import { useSelector } from 'react-redux';
 import NearMeIcon from '@mui/icons-material/NearMe';
+import { useToast } from './ui/toast';
 
 interface MapProps {
   locations: Location[];
@@ -149,6 +150,7 @@ const FloodLayer: React.FC<{ visible: boolean }> = React.memo(({ visible }) => {
 
 const LocateControl: React.FC = React.memo(() => {
   const map = useMap();
+  const { error } = useToast();
 
   // Callback to locate the user using browser's geolocation API, memoized to prevent unnecessary recreation
   const locateUser = useCallback(() => {
@@ -158,15 +160,15 @@ const LocateControl: React.FC = React.memo(() => {
           const { latitude, longitude } = position.coords;
           map.flyTo([latitude, longitude], 12);
         },
-        (error) => {
-          console.error('Error determining location', error);
-          alert('Unable to determine your location');
+        (err) => {
+          console.error('Error determining location', err);
+          error('Unable to determine your location');
         },
       );
     } else {
-      alert('Geolocation is not supported by your browser');
+      error('Geolocation is not supported by your browser');
     }
-  }, [map]);
+  }, [map, error]);
 
   return (
     <button
@@ -183,9 +185,6 @@ const Map: React.FC<MapProps> = ({ locations, currLocation, onEditLocation, show
   const [floodLayerVisible, setFloodLayerVisible] = useState(showFloodLayer);
   const [floodLoading, setFloodLoading] = useState(false);
 
-  const handleEditLocation = useCallback((location: Location) => {
-    onEditLocation?.(location);
-  }, [onEditLocation]);
 
   // Toggle flood layer visibility
   const toggleFloodLayer = useCallback(() => {
@@ -214,7 +213,7 @@ const Map: React.FC<MapProps> = ({ locations, currLocation, onEditLocation, show
         {/* Add markers for all locations */}
         {locations.map((location) => (
           <Marker key={location.id} position={[location.lat, location.lon]}>
-            <CityCard location={location} onEdit={handleEditLocation} />
+            <CityCard location={location} onEdit={onEditLocation} />
           </Marker>
         ))}
 
