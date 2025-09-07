@@ -14,8 +14,15 @@ interface PostData {
   images: File[];
 }
 
+const helpEmojis = [
+  { emoji: '🥖', label: 'Food' },
+  { emoji: '🏠', label: 'Shelter' },
+  { emoji: '🚗', label: 'Transportation' },
+  { emoji: '❓', label: 'Other' },
+];
+
 const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) => {
-  const [emoji, setEmoji] = useState('');
+  const [emoji, setEmoji] = useState(helpEmojis[0].emoji);
   const [message, setMessage] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -27,7 +34,7 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) 
     if (emoji && message.trim()) {
       onSubmit({ emoji, message: message.trim(), images });
       // Reset form
-      setEmoji('');
+      setEmoji(helpEmojis[0].emoji);
       setMessage('');
       setImages([]);
       onClose();
@@ -48,11 +55,7 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) 
   };
 
   // Reduced emoji set for help requests
-  const helpEmojis = [
-    { emoji: '🥖', label: 'Food' },
-    { emoji: '🏠', label: 'Shelter' },
-    { emoji: '🚗', label: 'Transportation' },
-  ];
+ 
 
   const handleEmojiSelect = (selectedEmoji: string) => {
     setEmoji(selectedEmoji);
@@ -141,16 +144,16 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) 
               <form onSubmit={handleSubmit} className="p-4 space-y-4">
                 {/* Emoji Picker */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    What kind of help do you need?
-                  </label>
-                  <div className="relative" ref={emojiPickerRef}>
+                  <div className="relative flex justify-center" ref={emojiPickerRef}>
                     <button
                       type="button"
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-2xl text-center transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,92,246,0.15)] hover:border-purple-400 hover:bg-purple-50 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="flex flex-col items-center justify-center w-20 h-20 border border-gray-300 rounded-full text-xl transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,92,246,0.15)] hover:border-purple-400 hover:bg-purple-50 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
-                      {emoji || '🥖'}
+                      <span className="mb-0.5">{emoji}</span>
+                      <span className="text-xs text-gray-600 leading-none">
+                        {helpEmojis.find(item => item.emoji === emoji)?.label || 'Food'}
+                      </span>
                     </button>
                     
                     {/* Emoji Picker Dropdown */}
@@ -190,7 +193,7 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) 
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="What's happening?"
+                    placeholder="What do you need help with?"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all duration-200 ease-out focus:-translate-y-0.5 focus:shadow-[0_4px_12px_rgba(139,92,246,0.15)]"
                     rows={3}
                     maxLength={200}
