@@ -60,17 +60,7 @@ const LocateControl: React.FC = React.memo(() => {
   return (
     <button
       onClick={locateUser}
-      style={{
-        position: 'absolute',
-        bottom: '105px',
-        right: '10px',
-        zIndex: 1000,
-        padding: '4px',
-        backgroundColor: '#8e7cc3',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '3px',
-      }}>
+      className="absolute bottom-28 right-2.5 z-[1000] p-1 bg-[#8e7cc3] text-white border-none rounded-sm">
       <NearMeIcon />
     </button>
   );
@@ -81,7 +71,7 @@ const Map: React.FC<MapProps> = ({ locations, currLocation }) => {
   const defaultPosition: [number, number] = [29.7604, -95.3698]; // Default center position (Houston, TX)
 
   return (
-    <div className="map-container" style={{ position: 'relative' }}>
+    <div className="h-screen w-screen fixed top-0 left-0 z-10 p-0 m-0">
       <MapContainer
         center={defaultPosition}
         zoom={10}
