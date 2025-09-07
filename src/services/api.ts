@@ -62,7 +62,7 @@ export interface FoodSite {
   last_updated?: string;
 }
 
-class ReliefLinkAPI {
+class NeighborooAPI {
   private baseURL: string;
 
   constructor() {
@@ -178,4 +178,4 @@ class ReliefLinkAPI {
   }
 }
 
-export const api = new ReliefLinkAPI();
+export const api = new NeighborooAPI();
