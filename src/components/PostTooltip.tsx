@@ -1,15 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Image, Send } from 'lucide-react';
+import { X, Image, Send, Trash2 } from 'lucide-react';
 
 interface PostTooltipProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: PostData) => void;
+  onDelete?: (id: string) => Promise<void>;
+  editData?: {
+    id?: string;
+    emojis?: string[];
+    message?: string;
+    lat?: number;
+    lng?: number;
+  };
 }
 
 interface PostData {
-  emoji: string;
+  emojis: string[];
   message: string;
   images: File[];
   lat: number;
@@ -25,31 +33,53 @@ const helpEmojis = [
   { emoji: '🫂', label: 'Friendship' },
 ];
 
-const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) => {
-  const [emoji, setEmoji] = useState(helpEmojis[0].emoji);
-  const [message, setMessage] = useState('');
+const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit, onDelete, editData }) => {
+  const [selectedEmojis, setSelectedEmojis] = useState<string[]>(editData?.emojis || []);
+  const [message, setMessage] = useState(editData?.message || '');
   const [images, setImages] = useState<File[]>([]);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [location, setLocation] = useState<{lat: number, lng: number} | null>(
+    editData?.lat && editData?.lng ? { lat: editData.lat, lng: editData.lng } : null
+  );
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  // Update state when editData changes
+  useEffect(() => {
+    console.log('🔄 PostTooltip editData changed:', editData);
+    if (editData) {
+      console.log('📝 Setting form fields:', {
+        emojis: editData.emojis,
+        message: editData.message,
+        location: { lat: editData.lat, lng: editData.lng }
+      });
+      setSelectedEmojis(editData.emojis || []);
+      setMessage(editData.message || '');
+      setLocation(editData.lat && editData.lng ? { lat: editData.lat, lng: editData.lng } : null);
+    } else {
+      // Reset to defaults when not editing
+      console.log('🔄 Resetting form to defaults');
+      setSelectedEmojis([]);
+      setMessage('');
+      setLocation(null);
+    }
+    setImages([]);
+  }, [editData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (emoji && message.trim() && location) {
+    if (selectedEmojis.length > 0 && message.trim() && location) {
       setIsSubmitting(true);
       try {
         await onSubmit({ 
-          emoji, 
+          emojis: selectedEmojis, 
           message: message.trim(), 
           images, 
           lat: location.lat, 
           lng: location.lng 
         });
         // Reset form
-        setEmoji(helpEmojis[0].emoji);
+        setSelectedEmojis([]);
         setMessage('');
         setImages([]);
         onClose();
@@ -58,6 +88,21 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) 
         // Handle error - could show a toast or error message
       } finally {
         setIsSubmitting(false);
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    if (editData?.id && onDelete) {
+      const confirmed = window.confirm('Are you sure you want to delete this post? This action cannot be undone.');
+      if (confirmed) {
+        try {
+          await onDelete(editData.id);
+          onClose();
+        } catch (error) {
+          // Error is already handled in the parent component
+          console.error('Delete failed:', error);
+        }
       }
     }
   };
@@ -75,11 +120,14 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) 
     fileInputRef.current?.click();
   };
 
- 
-
-  const handleEmojiSelect = (selectedEmoji: string) => {
-    setEmoji(selectedEmoji);
-    setShowEmojiPicker(false);
+  const toggleEmojiSelection = (emoji: string) => {
+    setSelectedEmojis(prev => {
+      if (prev.includes(emoji)) {
+        return prev.filter(e => e !== emoji);
+      } else {
+        return [...prev, emoji];
+      }
+    });
   };
 
   // Get user's current location when tooltip opens
@@ -106,22 +154,6 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) 
     }
   }, [isOpen, location]);
 
-  // Close emoji picker when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
-        setShowEmojiPicker(false);
-      }
-    };
-
-    if (showEmojiPicker) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showEmojiPicker]);
 
   return (
     <AnimatePresence>
@@ -175,58 +207,59 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) 
             <div className="bg-white rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.05)] border border-gray-200 w-80 max-w-[calc(100vw-2rem)] overflow-hidden relative after:content-[''] after:absolute after:-bottom-2 after:left-1/2 after:transform after:-translate-x-1/2 after:w-4 after:h-4 after:bg-white after:border after:border-gray-200 after:border-t-0 after:border-l-0 after:rotate-45 after:rounded-br-sm after:z-10 after:shadow-[2px_2px_4px_rgba(0,0,0,0.1)]">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900">Request Help</h3>
-                <button
-                  onClick={onClose}
-                  className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-                >
-                  <X size={20} className="text-gray-500" />
-                </button>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {editData ? 'Edit Post' : 'What do you need?'}
+                </h3>
+                {editData && onDelete ? (
+                  <button
+                    onClick={handleDelete}
+                    className="p-1 rounded-full hover:bg-red-100 transition-colors group"
+                    title="Delete post"
+                  >
+                    <Trash2 size={20} className="text-red-500 group-hover:text-red-600" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={onClose}
+                    className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <X size={20} className="text-gray-500" />
+                  </button>
+                )}
               </div>
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="p-4 space-y-4">
-                {/* Emoji Picker */}
+                {/* Category Selection */}
                 <div>
-                  <div className="relative flex justify-center" ref={emojiPickerRef}>
-                    <button
-                      type="button"
-                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      className="flex flex-col items-center justify-center w-20 h-20 border border-gray-300 rounded-full text-xl transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,92,246,0.15)] hover:border-purple-400 hover:bg-purple-50 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <span className="mb-0.5">{emoji}</span>
-                      <span className="text-xs text-gray-600 leading-none">
-                        {helpEmojis.find(item => item.emoji === emoji)?.label || 'Food'}
-                      </span>
-                    </button>
-                    
-                    {/* Emoji Picker Dropdown */}
-                    <AnimatePresence>
-                      {showEmojiPicker && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                          transition={{ duration: 0.2 }}
-                          className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 p-3"
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    What categories do you need help with? (Select all that apply)
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {helpEmojis.map((item, index) => {
+                      const isSelected = selectedEmojis.includes(item.emoji);
+                      return (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => toggleEmojiSelection(item.emoji)}
+                          className={`flex flex-col items-center p-3 border-2 rounded-lg transition-all duration-200 ${
+                            isSelected
+                              ? 'border-purple-500 bg-purple-50 shadow-md scale-105'
+                              : 'border-gray-200 hover:border-purple-300 hover:bg-purple-25'
+                          }`}
                         >
-                          <div className="grid grid-cols-3 gap-3">
-                            {helpEmojis.map((item, index) => (
-                              <button
-                                key={index}
-                                type="button"
-                                onClick={() => handleEmojiSelect(item.emoji)}
-                                className="flex flex-col items-center p-2 hover:bg-purple-100 rounded-lg transition-colors"
-                              >
-                                <span className="text-2xl mb-1">{item.emoji}</span>
-                                <span className="text-xs text-gray-600">{item.label}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                          <span className="text-2xl mb-1">{item.emoji}</span>
+                          <span className={`text-xs font-medium ${
+                            isSelected ? 'text-purple-700' : 'text-gray-600'
+                          }`}>
+                            {item.label}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
+                  
                 </div>
 
                 {/* Message Input */}
@@ -320,13 +353,13 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) 
                 <motion.button
                   type="submit"
                   className={`w-full py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-all duration-200 ${
-                    !emoji || !message.trim() || !location || isSubmitting
+                    selectedEmojis.length === 0 || !message.trim() || !location || isSubmitting
                       ? 'opacity-50 cursor-not-allowed bg-gray-400' 
                       : 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-[0_4px_14px_0_rgba(139,92,246,0.4)] hover:from-purple-700 hover:to-purple-800 hover:shadow-[0_6px_20px_0_rgba(139,92,246,0.5)]'
                   }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  disabled={!emoji || !message.trim() || !location || isSubmitting}
+                  disabled={selectedEmojis.length === 0 || !message.trim() || !location || isSubmitting}
                 >
                   <Send size={18} />
                   {isSubmitting ? 'Posting...' : 'Post'}

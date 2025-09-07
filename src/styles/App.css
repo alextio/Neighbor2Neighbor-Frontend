@@ -87,3 +87,8 @@ body {
 .leaflet-control-zoom {
   bottom: 80px !important;
 }
+
+/* Hide the default Leaflet popup close button */
+.leaflet-popup-close-button {
+  display: none !important;
+}

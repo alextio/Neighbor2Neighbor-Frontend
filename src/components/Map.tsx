@@ -10,6 +10,7 @@ import NearMeIcon from '@mui/icons-material/NearMe';
 interface MapProps {
   locations: Location[];
   currLocation: Location;
+  onEditLocation?: (location: Location) => void;
 }
 
 // Component to display and move the map to the current location
@@ -67,8 +68,12 @@ const LocateControl: React.FC = React.memo(() => {
 });
 
 // Main map component
-const Map: React.FC<MapProps> = ({ locations, currLocation }) => {
+const Map: React.FC<MapProps> = ({ locations, currLocation, onEditLocation }) => {
   const defaultPosition: [number, number] = [29.7604, -95.3698]; // Default center position (Houston, TX)
+
+  const handleEditLocation = useCallback((location: Location) => {
+    onEditLocation?.(location);
+  }, [onEditLocation]);
 
   return (
     <div className="h-screen w-screen fixed top-0 left-0 z-10 p-0 m-0">
@@ -84,7 +89,7 @@ const Map: React.FC<MapProps> = ({ locations, currLocation }) => {
         {/* Add markers for all locations */}
         {locations.map((location) => (
           <Marker key={location.id} position={[location.lat, location.lon]}>
-            <CityCard location={location} />
+            <CityCard location={location} onEdit={handleEditLocation} />
           </Marker>
         ))}
 
