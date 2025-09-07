@@ -60,17 +60,7 @@ const LocateControl: React.FC = React.memo(() => {
   return (
     <button
       onClick={locateUser}
-      style={{
-        position: 'absolute',
-        bottom: '105px',
-        right: '10px',
-        zIndex: 1000,
-        padding: '4px',
-        backgroundColor: '#3581bf',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '3px',
-      }}>
+      className="absolute bottom-28 right-2.5 z-[1000] p-1 bg-[#8e7cc3] text-white border-none rounded-sm">
       <NearMeIcon />
     </button>
   );
@@ -78,17 +68,17 @@ const LocateControl: React.FC = React.memo(() => {
 
 // Main map component
 const Map: React.FC<MapProps> = ({ locations, currLocation }) => {
-  const defaultPosition: [number, number] = [52.52, 13.405]; // Default center position (Berlin)
+  const defaultPosition: [number, number] = [29.7604, -95.3698]; // Default center position (Houston, TX)
 
   return (
-    <div className="map-container" style={{ position: 'relative' }}>
+    <div className="h-screen w-screen fixed top-0 left-0 z-10 p-0 m-0">
       <MapContainer
         center={defaultPosition}
         zoom={10}
         style={{ height: '100%', width: '100%', margin: '0px' }}>
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+          attribution=""
         />
 
         {/* Add markers for all locations */}

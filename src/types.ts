@@ -1,10 +1,12 @@
 export interface Location {
-  id: number;
+  id: string;
   name: string;
   description: string;
   lat: number;
   lon: number;
-  moreInfoUrl: string;
-  mainImg: string;
+  moreInfoUrl?: string;
+  mainImg?: string;
   imageUrls?: string[];
+  type?: string;
+  urgency?: number;
 }
