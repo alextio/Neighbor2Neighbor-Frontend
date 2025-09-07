@@ -166,6 +166,12 @@ class ReliefLinkAPI {
     return this.request<any>('/api/311');
   }
 
+  // Flood WMS proxy - returns the WMS URL for flood layers
+  async getFloodWMSUrl(wmsUrl: string): Promise<Response> {
+    const url = `${this.baseURL}/api/flood/wms?url=${encodeURIComponent(wmsUrl)}`;
+    return fetch(url);
+  }
+
   // Health check
   async healthCheck(): Promise<{ status: string }> {
     return this.request<{ status: string }>('/healthz');

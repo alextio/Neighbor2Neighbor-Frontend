@@ -68,6 +68,12 @@ const pinsSlice = createSlice({
     removePin: (state, action: PayloadAction<string>) => {
       state.pins = state.pins.filter(pin => pin.id !== action.payload);
     },
+    updatePin: (state, action: PayloadAction<Pin>) => {
+      const index = state.pins.findIndex(pin => pin.id === action.payload.id);
+      if (index !== -1) {
+        state.pins[index] = action.payload;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -102,5 +108,5 @@ const pinsSlice = createSlice({
   },
 });
 
-export const { setFilters, clearError, removePin } = pinsSlice.actions;
+export const { setFilters, clearError, removePin, updatePin } = pinsSlice.actions;
 export default pinsSlice.reducer;
