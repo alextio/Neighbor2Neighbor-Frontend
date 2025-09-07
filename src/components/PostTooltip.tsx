@@ -17,10 +17,12 @@ interface PostData {
 }
 
 const helpEmojis = [
+  { emoji: '❓', label: 'Other' },
   { emoji: '🥖', label: 'Food' },
   { emoji: '🏠', label: 'Shelter' },
   { emoji: '🚗', label: 'Transportation' },
-  { emoji: '❓', label: 'Other' },
+  { emoji: '💪', label: 'Manpower' },
+  { emoji: '🫂', label: 'Friendship' },
 ];
 
 const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) => {
