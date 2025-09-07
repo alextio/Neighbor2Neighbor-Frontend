@@ -16,25 +16,50 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-0 z-[1000] shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
-      <div className="flex items-center max-w-full mx-auto p-0 gap-0 relative">
-        {tabs.map((tab) => {
-          const IconComponent = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              className={`flex flex-col items-center justify-center bg-none border-none px-4 py-3 cursor-pointer transition-all duration-200 ease-in-out rounded-xl min-w-[50px] flex-1 max-w-[80px] hover:bg-gray-100 ${
-                activeTab === tab.id ? 'text-[#8e7cc3]' : ''
-              }`}
-              onClick={() => onTabChange(tab.id)}
-            >
-              <div className={`flex items-center justify-center transition-all duration-200 ease-in-out text-gray-500 ${
-                activeTab === tab.id ? 'text-[#8e7cc3] scale-110' : ''
-              }`}>
-                <IconComponent size={24} />
-              </div>
-            </button>
-          );
-        })}
+      <div className="flex items-center justify-between max-w-full mx-auto p-0 relative">
+        {/* Left column - first 2 tabs */}
+        <div className="flex items-center">
+          {tabs.slice(0, 2).map((tab) => {
+            const IconComponent = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                className={`flex flex-col items-center justify-center bg-none border-none px-4 py-3 cursor-pointer transition-all duration-200 ease-in-out rounded-xl min-w-[50px] hover:bg-gray-100 ${
+                  activeTab === tab.id ? 'text-[#8e7cc3]' : ''
+                }`}
+                onClick={() => onTabChange(tab.id)}
+              >
+                <div className={`flex items-center justify-center transition-all duration-200 ease-in-out text-gray-500 ${
+                  activeTab === tab.id ? 'text-[#8e7cc3] scale-110' : ''
+                }`}>
+                  <IconComponent size={24} />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right column - last 2 tabs */}
+        <div className="flex items-center">
+          {tabs.slice(2, 4).map((tab) => {
+            const IconComponent = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                className={`flex flex-col items-center justify-center bg-none border-none px-4 py-3 cursor-pointer transition-all duration-200 ease-in-out rounded-xl min-w-[50px] hover:bg-gray-100 ${
+                  activeTab === tab.id ? 'text-[#8e7cc3]' : ''
+                }`}
+                onClick={() => onTabChange(tab.id)}
+              >
+                <div className={`flex items-center justify-center transition-all duration-200 ease-in-out text-gray-500 ${
+                  activeTab === tab.id ? 'text-[#8e7cc3] scale-110' : ''
+                }`}>
+                  <IconComponent size={24} />
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
       
       {/* Circular + button in the middle */}

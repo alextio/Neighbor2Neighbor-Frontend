@@ -6,6 +6,7 @@ import './styles/App.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPins } from './store/slices/pinsSlice';
 import { RootState } from './store/store';
+import { api, CreatePinRequest } from './services/api';
 
 const MapComponent = React.lazy(() => import('./components/Map'));
 
@@ -53,10 +54,68 @@ const App: React.FC = () => {
     }
   };
 
-  const handlePostSubmit = (data: { emoji: string; message: string; images: File[] }) => {
-    console.log('Post submitted:', data);
-    // Here you would typically send the data to your API
-    // For now, we'll just log it
+  // Map emoji to categories for API
+  const mapEmojiToCategory = (emoji: string): string[] => {
+    const emojiMap: { [key: string]: string[] } = {
+      '🥖': ['food'],
+      '🏠': ['shelter'],
+      '🚗': ['transportation'],
+      '❓': ['other']
+    };
+    return emojiMap[emoji] || ['other'];
+  };
+
+  // Generate anonymous user ID (in real app, this would be more sophisticated)
+  const getAnonUserId = (): string => {
+    let anonId = localStorage.getItem('anon_user_id');
+    if (!anonId) {
+      anonId = 'anon_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('anon_user_id', anonId);
+    }
+    return anonId;
+  };
+
+  const handlePostSubmit = async (data: { emoji: string; message: string; images: File[]; lat: number; lng: number }) => {
+    console.log('🚀 Starting pin submission process...');
+    console.log('📍 User location:', { lat: data.lat, lng: data.lng });
+    console.log('📝 Form data:', data);
+    
+    try {
+      const pinRequest: CreatePinRequest = {
+        kind: 'need', // All posts from this form are help requests
+        categories: mapEmojiToCategory(data.emoji),
+        body: data.message,
+        lat: data.lat,
+        lng: data.lng,
+        urgency: 2, // Default to medium urgency
+        author_anon_id: getAnonUserId()
+      };
+
+      console.log('📤 API Request payload:', pinRequest);
+      console.log('🌐 API Base URL:', import.meta.env.VITE_API_URL || 'http://localhost:8000');
+      
+      const newPin = await api.createPin(pinRequest);
+      console.log('✅ Pin created successfully!');
+      console.log('📋 Response data:', newPin);
+      
+      // Refresh pins to show the new marker
+      console.log('🔄 Refreshing pins list...');
+      dispatch(fetchPins() as any);
+      
+      // Show success message
+      alert(`✅ Help request posted successfully!\nID: ${newPin.id}\nLocation: ${data.lat.toFixed(4)}, ${data.lng.toFixed(4)}`);
+      
+    } catch (error) {
+      console.error('❌ Failed to create pin:', error);
+      console.error('🔍 Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
+      // Show user-friendly error
+      alert(`❌ Failed to post help request: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error; // Re-throw to let PostTooltip handle the error
+    }
   };
 
   const handleTooltipClose = () => {

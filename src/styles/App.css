@@ -84,6 +84,6 @@ body {
 }
 
 /* Position zoom controls above bottom navigation */
-/* .leaflet-control-zoom {
-  bottom: 30px !important;
-} */
+.leaflet-control-zoom {
+  bottom: 80px !important;
+}

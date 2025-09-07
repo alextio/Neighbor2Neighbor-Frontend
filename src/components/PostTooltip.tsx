@@ -12,6 +12,8 @@ interface PostData {
   emoji: string;
   message: string;
   images: File[];
+  lat: number;
+  lng: number;
 }
 
 const helpEmojis = [
@@ -26,18 +28,35 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) 
   const [message, setMessage] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (emoji && message.trim()) {
-      onSubmit({ emoji, message: message.trim(), images });
-      // Reset form
-      setEmoji(helpEmojis[0].emoji);
-      setMessage('');
-      setImages([]);
-      onClose();
+    if (emoji && message.trim() && location) {
+      setIsSubmitting(true);
+      try {
+        await onSubmit({ 
+          emoji, 
+          message: message.trim(), 
+          images, 
+          lat: location.lat, 
+          lng: location.lng 
+        });
+        // Reset form
+        setEmoji(helpEmojis[0].emoji);
+        setMessage('');
+        setImages([]);
+        onClose();
+      } catch (error) {
+        console.error('Failed to submit post:', error);
+        // Handle error - could show a toast or error message
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -54,13 +73,36 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) 
     fileInputRef.current?.click();
   };
 
-  // Reduced emoji set for help requests
  
 
   const handleEmojiSelect = (selectedEmoji: string) => {
     setEmoji(selectedEmoji);
     setShowEmojiPicker(false);
   };
+
+  // Get user's current location when tooltip opens
+  useEffect(() => {
+    if (isOpen && !location) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+            setLocationError(null);
+          },
+          (error) => {
+            console.error('Error getting location:', error);
+            setLocationError('Unable to get your location. Please enable location services.');
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+        );
+      } else {
+        setLocationError('Geolocation is not supported by this browser.');
+      }
+    }
+  }, [isOpen, location]);
 
   // Close emoji picker when clicking outside
   useEffect(() => {
@@ -260,20 +302,32 @@ const PostTooltip: React.FC<PostTooltipProps> = ({ isOpen, onClose, onSubmit }) 
                   )}
                 </div>
 
+                {/* Location Status */}
+                {locationError && (
+                  <div className="text-sm text-red-600 bg-red-50 p-2 rounded-lg">
+                    {locationError}
+                  </div>
+                )}
+                {location && (
+                  <div className="text-sm text-green-600 bg-green-50 p-2 rounded-lg">
+                    📍 Location detected
+                  </div>
+                )}
+
                 {/* Submit Button */}
                 <motion.button
                   type="submit"
                   className={`w-full py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-all duration-200 ${
-                    !emoji || !message.trim() 
+                    !emoji || !message.trim() || !location || isSubmitting
                       ? 'opacity-50 cursor-not-allowed bg-gray-400' 
                       : 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-[0_4px_14px_0_rgba(139,92,246,0.4)] hover:from-purple-700 hover:to-purple-800 hover:shadow-[0_6px_20px_0_rgba(139,92,246,0.5)]'
                   }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  disabled={!emoji || !message.trim()}
+                  disabled={!emoji || !message.trim() || !location || isSubmitting}
                 >
                   <Send size={18} />
-                  Post
+                  {isSubmitting ? 'Posting...' : 'Post'}
                 </motion.button>
               </form>
             </div>
